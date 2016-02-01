@@ -32,13 +32,13 @@ public class Main {
             Main m= new Main();
             m.check();
         } catch (InstantiationException ex) {
-            Log.error("Instantiation exception", ex);
+            Log.error(ex.getMessage(), ex);
         } catch (IllegalAccessException ex) {
-            Log.error("Illegal access exception", ex);
+            Log.error(ex.getMessage(), ex);
         } catch (IllegalArgumentException ex) {
-            Log.error("Illegal argument exception", ex);
+            Log.error(ex.getMessage(), ex);
         } catch (InvocationTargetException ex) {
-            Log.error("Invocation target exception", ex);
+            Log.error(ex.getMessage(), ex);
         }
     }
     
@@ -53,7 +53,7 @@ public class Main {
                 
                 for(Method m: methods){
                     if(m.isAnnotationPresent(Initialize.class)){
-                        if(m.getAnnotation(Initialize.class).lazy())
+                        if(m.getAnnotation(Initialize.class).lazy()==false)
                             m.invoke(instance);
                     }
                 }

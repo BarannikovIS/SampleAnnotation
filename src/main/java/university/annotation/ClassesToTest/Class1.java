@@ -15,8 +15,8 @@ import university.annotation.Initialize;
 public class Class1 {
     private static final Logger Log = Logger.getLogger(Class1.class);
     
-    @Initialize(lazy=true)
+    @Initialize(lazy=false)
     public void doAction(){
-        Log.info("Class1, doAction with lazy=true");
+        Log.info("Class1, doAction with lazy=false");
     }
 }
