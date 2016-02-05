@@ -16,7 +16,7 @@ public class Class2 {
     private static final Logger Log = Logger.getLogger(Class2.class);
     
     @Initialize(lazy=false)
-    public void doAction(){
+    private void doAction(){
         Log.info("Class2, doAction with lazy=false");
     }
     @Initialize(lazy=true)

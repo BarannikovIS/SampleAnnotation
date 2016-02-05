@@ -24,13 +24,15 @@ import org.apache.log4j.Logger;
  * @author Иван
  */
 public class Main {
+
     private static final Logger Log = Logger.getLogger(Main.class);
-    public static HashMap map; 
-    
+    public static HashMap map;
+
     public static void main(String[] args) {
         try {
-            Main m= new Main();
+            Main m = new Main();
             m.check();
+            m.checkLazy();
         } catch (InstantiationException ex) {
             Log.error(ex.getMessage(), ex);
         } catch (IllegalAccessException ex) {
@@ -41,34 +43,51 @@ public class Main {
             Log.error(ex.getMessage(), ex);
         }
     }
-    
-    private void check() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
-        map= new HashMap<String,Object>();
-        Set<Class<?>> classes=getAllClasses();
-        
-        for(Class c: classes){
-            if(c.isAnnotationPresent(Component.class)){
-                Object instance=toInstantiate(c);
-                Method[] methods = c.getMethods();
-                
-                for(Method m: methods){
-                    if(m.isAnnotationPresent(Initialize.class)){
-                        if(m.getAnnotation(Initialize.class).lazy()==false)
+
+    private void check() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        map = new HashMap<String, Object>();
+        Set<Class<?>> classes = getAllClasses();
+
+        for (Class c : classes) {
+            if (c.isAnnotationPresent(Component.class)) {
+                Object instance = toInstantiate(c);
+                Method[] methods = c.getDeclaredMethods();
+
+                for (Method m : methods) {
+                    if (m.isAnnotationPresent(Initialize.class)) {
+                        if (m.getAnnotation(Initialize.class).lazy() == false) {
+                            m.setAccessible(true);
                             m.invoke(instance);
+                        }
                     }
                 }
                 map.put(c.getName(), instance);
             }
         }
     }
-    
-    private Object toInstantiate(Class c) throws InstantiationException, IllegalAccessException{
+
+    public void checkLazy() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        for (Object instance : map.values()) {
+                Method[] methods = instance.getClass().getDeclaredMethods();
+                for (Method m : methods) {
+                    if (m.isAnnotationPresent(Initialize.class)) {
+                        if (m.getAnnotation(Initialize.class).lazy() == true) {
+                            m.setAccessible(true);
+                            m.invoke(instance);
+                        }
+                    }
+                }           
+        }
+    }
+
+    private Object toInstantiate(Class c) throws InstantiationException, IllegalAccessException {
         return c.newInstance();
     }
+
     private Set<Class<?>> getAllClasses() {
         Set<Class<?>> classes;
-        
-        List<ClassLoader> classLoadersList = new LinkedList<ClassLoader>();        
+
+        List<ClassLoader> classLoadersList = new LinkedList<ClassLoader>();
         classLoadersList.add(ClasspathHelper.contextClassLoader());
         classLoadersList.add(ClasspathHelper.staticClassLoader());
 
@@ -79,6 +98,6 @@ public class Main {
 
         classes = reflections.getSubTypesOf(Object.class);
         return classes;
-    } 
-    
+    }
+
 }
