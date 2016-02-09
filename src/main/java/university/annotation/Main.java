@@ -7,6 +7,7 @@ package university.annotation;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,13 +27,18 @@ import org.apache.log4j.Logger;
 public class Main {
 
     private static final Logger Log = Logger.getLogger(Main.class);
+
     public static HashMap map;
+    public static ArrayList<String> initializeService=new ArrayList<String>();
 
     public static void main(String[] args) {
         try {
             Main m = new Main();
             m.check();
-            m.checkLazy();
+            
+            m.checkLazy(map.get("university.annotation.ClassesToTest.Class2"));
+            m.checkLazy(map.get("university.annotation.ClassesToTest.Class2"));
+            
         } catch (InstantiationException ex) {
             Log.error(ex.getMessage(), ex);
         } catch (IllegalAccessException ex) {
@@ -58,25 +64,28 @@ public class Main {
                         if (m.getAnnotation(Initialize.class).lazy() == false) {
                             m.setAccessible(true);
                             m.invoke(instance);
+                            initializeService.add(instance.getClass().getName() + m.getName());
                         }
                     }
                 }
                 map.put(c.getName(), instance);
+                System.out.println(c.getName());
             }
         }
     }
 
-    public void checkLazy() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-        for (Object instance : map.values()) {
-                Method[] methods = instance.getClass().getDeclaredMethods();
-                for (Method m : methods) {
-                    if (m.isAnnotationPresent(Initialize.class)) {
-                        if (m.getAnnotation(Initialize.class).lazy() == true) {
-                            m.setAccessible(true);
-                            m.invoke(instance);
-                        }
+    public void checkLazy(Object instance) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        Method[] methods = instance.getClass().getDeclaredMethods();
+        for (Method m : methods) {
+            if (m.isAnnotationPresent(Initialize.class)) {
+                if (m.getAnnotation(Initialize.class).lazy() == true) {
+                    if (!initializeService.contains(instance.getClass().getName() + m.getName())) {
+                        m.setAccessible(true);
+                        m.invoke(instance);
+                        initializeService.add(instance.getClass().getName() + m.getName());
                     }
-                }           
+                }
+            }
         }
     }
 
